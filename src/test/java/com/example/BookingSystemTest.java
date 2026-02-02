@@ -50,14 +50,14 @@ public class BookingSystemTest {
     }
 
     @Test
-    @DisplayName("bookroom: returns true when rook is available")
+    @DisplayName("bookRoom: returns true when rook is available")
     void bookRoomShouldReturnTrueWhenRoomIsAvailable(){
         boolean result = bookingSystem.bookRoom(roomId, start, end);
 
         assertThat(result).isTrue();
     }
     @Test
-    @DisplayName("bookroom: saves room when cooking is successful")
+    @DisplayName("bookRoom: saves room when cooking is successful")
     void bookRoomShouldSaveRoomWhenRoomIsAvailable(){
         bookingSystem.bookRoom(roomId, start, end);
 
@@ -86,5 +86,18 @@ public class BookingSystemTest {
         assertThat(result).isFalse();
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
+    }
+    @Test
+    @DisplayName("bookRoom: succeeds even if notification sending fails")
+    void bookRoomShouldSucceedEvenIfNotificationFails() throws Exception {
+        doThrow(new NotificationException("Boom"))
+                .when(notificationService)
+                .sendBookingConfirmation(any(Booking.class));
+
+        boolean result = bookingSystem.bookRoom(roomId, start, end);
+
+        assertThat(result).isTrue();
+        verify(roomRepository).save(room);
+        verify(notificationService).sendBookingConfirmation(any(Booking.class));
     }
 }
