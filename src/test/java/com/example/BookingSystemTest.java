@@ -64,7 +64,7 @@ public class BookingSystemTest {
         verify(roomRepository).save(room);
     }
     @Test
-    @DisplayName("bookRoom: sends booking confiramtion with correct booking details")
+    @DisplayName("bookRoom: sends booking confirmation with correct booking details")
     void bookRoomShouldSendConfirmationWithCorrectBookingDetails() throws Exception {
         bookingSystem.bookRoom(roomId, start, end);
 
@@ -75,5 +75,16 @@ public class BookingSystemTest {
         assertThat(sent.getStartTime()).isEqualTo(start);
         assertThat(sent.getEndTime()).isEqualTo(end);
         assertThat(sent.getId()).isNotBlank();
+    }
+    @Test
+    @DisplayName("bookRoom: returns false and does not save when the room is not available")
+    void bookRoomShouldReturnFalseWhenRoomIsnNotAvailable() throws Exception {
+        room.addBooking(new Booking("B1", roomId, start.minusMinutes(30), start.plusMinutes(30)));
+
+        boolean result = bookingSystem.bookRoom(roomId, start, end);
+
+        assertThat(result).isFalse();
+        verify(roomRepository, never()).save(any());
+        verify(notificationService, never()).sendBookingConfirmation(any());
     }
 }
