@@ -1,6 +1,7 @@
 package com.example;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,9 +50,17 @@ public class BookingSystemTest {
     }
 
     @Test
+    @DisplayName("bookroom: returns true when rook is available")
     void bookRoomShouldReturnTrueWhenRoomIsAvailable(){
         boolean result = bookingSystem.bookRoom(roomId, start, end);
 
         assertThat(result).isTrue();
+    }
+    @Test
+    @DisplayName("bookroom: saves room when cooking is successful")
+    void bookRoomShouldSaveRoomWhenRoomIsAvailable(){
+        bookingSystem.bookRoom(roomId, start, end);
+
+        verify(roomRepository).save(room);
     }
 }
