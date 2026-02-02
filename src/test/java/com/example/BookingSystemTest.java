@@ -63,4 +63,17 @@ public class BookingSystemTest {
 
         verify(roomRepository).save(room);
     }
+    @Test
+    @DisplayName("bookRoom: sends booking confiramtion with correct booking details")
+    void bookRoomShouldSendConfirmationWithCorrectBookingDetails() throws Exception {
+        bookingSystem.bookRoom(roomId, start, end);
+
+        verify(notificationService).sendBookingConfirmation(bookingCaptor.capture());
+        Booking sent = bookingCaptor.getValue();
+
+        assertThat(sent.getRoomId()).isEqualTo(roomId);
+        assertThat(sent.getStartTime()).isEqualTo(start);
+        assertThat(sent.getEndTime()).isEqualTo(end);
+        assertThat(sent.getId()).isNotBlank();
+    }
 }
