@@ -19,11 +19,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class BookingSystemTest {
 
-    @Mock TimeProvider timeProvider;
-    @Mock RoomRepository roomRepository;
-    @Mock NotificationService notificationService;
+    @Mock
+    TimeProvider timeProvider;
+    @Mock
+    RoomRepository roomRepository;
+    @Mock
+    NotificationService notificationService;
 
-    @Captor ArgumentCaptor<Booking> bookingCaptor;
+    @Captor
+    ArgumentCaptor<Booking> bookingCaptor;
 
     private BookingSystem bookingSystem;
     private String roomId;
@@ -33,7 +37,7 @@ class BookingSystemTest {
     private Room room;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         bookingSystem = new BookingSystem(timeProvider, roomRepository, notificationService);
 
         roomId = "R1";
@@ -50,22 +54,24 @@ class BookingSystemTest {
 
     @Test
     @DisplayName("bookRoom: returns true when rook is available")
-    void bookRoomShouldReturnTrueWhenRoomIsAvailable(){
+    void bookRoomShouldReturnTrueWhenRoomIsAvailable() {
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         boolean result = bookingSystem.bookRoom(roomId, start, end);
 
         assertThat(result).isTrue();
     }
+
     @Test
     @DisplayName("bookRoom: saves room when cooking is successful")
-    void bookRoomShouldSaveRoomWhenRoomIsAvailable(){
+    void bookRoomShouldSaveRoomWhenRoomIsAvailable() {
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         bookingSystem.bookRoom(roomId, start, end);
 
         verify(roomRepository).save(room);
     }
+
     @Test
     @DisplayName("bookRoom: sends booking confirmation with correct booking details")
     void bookRoomShouldSendConfirmationWithCorrectBookingDetails() throws Exception {
@@ -81,6 +87,7 @@ class BookingSystemTest {
         assertThat(sent.getEndTime()).isEqualTo(end);
         assertThat(sent.getId()).isNotBlank();
     }
+
     @Test
     @DisplayName("bookRoom: returns false and does not save when the room is not available")
     void bookRoomShouldReturnFalseWhenRoomIsnNotAvailable() throws Exception {
@@ -94,6 +101,7 @@ class BookingSystemTest {
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
     }
+
     @Test
     @DisplayName("bookRoom: succeeds even if notification sending fails")
     void bookRoomShouldSucceedEvenIfNotificationFails() throws Exception {
@@ -109,36 +117,40 @@ class BookingSystemTest {
         verify(roomRepository).save(room);
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
     }
+
     @Test
     @DisplayName("bookRoom: throws exception when room does not exist")
     void bookRoomShouldThrowWhenRoomDoesNotExist() throws Exception {
         when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, start, end))
+        assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, start, end))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Rummet existerar inte");
 
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
     }
+
     @Test
     @DisplayName("bookRoom: throws exception when start time is in the past")
     void bookRoomShouldThrowWhenStartTimeIsInPast() throws Exception {
         LocalDateTime pastStart = now.minusMinutes(1);
         LocalDateTime pastEnd = now.minusMinutes(10);
 
-        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, pastStart, pastEnd))
+        assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, pastStart, pastEnd))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("dåtid");
 
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
     }
+
     @Test
-    void bookRoomShouldThrowWhenEndBeforeStart() throws Exception{
+    @DisplayName("bookRoom: throws exception when end is before start")
+    void bookRoomShouldThrowWhenEndBeforeStart() throws Exception {
         LocalDateTime badEnd = start.minusMinutes(1);
 
-        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, start, badEnd))
+        assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, start, badEnd))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Sluttid måste vara efter starttid");
 
