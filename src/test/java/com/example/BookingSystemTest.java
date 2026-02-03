@@ -7,18 +7,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BookingSystemTest {
+class BookingSystemTest {
 
     @Mock TimeProvider timeProvider;
     @Mock RoomRepository roomRepository;
@@ -99,5 +98,17 @@ public class BookingSystemTest {
         assertThat(result).isTrue();
         verify(roomRepository).save(room);
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
+    }
+    @Test
+    @DisplayName("bookRoom: should throw exception when room does not exist")
+    void bookRoomShouldThrowExceptionWhenRoomDoesNotExist() throws Exception {
+        when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, start, end))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Rummet existerar inte");
+
+        verify(roomRepository, never()).save(any());
+        verify(notificationService, never()).sendBookingConfirmation(any());
     }
 }
