@@ -133,7 +133,17 @@ class BookingSystemTest {
 
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
+    }
+    @Test
+    void bookRoomShouldThrowWhenEndBeforeStart() throws Exception{
+        LocalDateTime badEnd = start.minusMinutes(1);
 
+        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, start, badEnd))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Sluttid måste vara efter starttid");
+
+        verify(roomRepository, never()).save(any());
+        verify(notificationService, never()).sendBookingConfirmation(any());
     }
 
 }
