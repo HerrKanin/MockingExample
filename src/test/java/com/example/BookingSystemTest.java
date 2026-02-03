@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -178,6 +177,88 @@ class BookingSystemTest {
 
         assertThat(result)
                 .containsExactly(available);
+    }
+    @Test
+    void getAvailableRoomsShouldThrownWhenBeforeStart(){
+        LocalDateTime badEnd = start.minusMinutes(1);
+
+        assertThatThrownBy(()-> bookingSystem.getAvailableRooms(start, badEnd))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Sluttid måste vara efter starttid");
+    }
+    @Test
+    void cancelBookingShouldThrownWhenBookingIdIsNull(){
+        assertThatThrownBy(()-> bookingSystem.cancelBooking(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Boknings-id kan inte vara null");
+    }
+    @Test
+    void cancelBookingShouldReturnFalseWhenBookingNotFound() throws Exception{
+        when(roomRepository.findAll()).thenReturn(List.of(
+                new Room("A", "Room A"),
+                new Room("A", "Room B")
+        ));
+
+        boolean reslut = bookingSystem.cancelBooking("missing");
+
+        assertThat(reslut).isFalse();
+        verify(roomRepository, never()).save(any());
+        verify(notificationService, never()).sendCancellationConfirmation(any());
+    }
+    @Test
+    void cancelBookingShouldThrowWhenBookingAlreadyStarted() throws Exception{
+        String bookingId = "B1";
+        Room r = new Room("A", "Room A");
+        Booking booking = new Booking(bookingId, r.getId(), now.minusMinutes(10), now.plusMinutes(50));
+        r.addBooking(booking);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+        when(roomRepository.findAll()).thenReturn(List.of(r));
+
+        assertThatThrownBy(()-> bookingSystem.cancelBooking(bookingId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Kan inte avboka");
+
+        verify(roomRepository, never()).save(any());
+        verify(notificationService, never()).sendCancellationConfirmation(any());
+    }
+    @Test
+    void cancelBookingShouldRemoveSaveAndNotifyWhenSuccess() throws Exception{
+
+        String bookingId = "B1";
+        Room r = new Room("A", "Room A");
+        Booking booking = new Booking(bookingId, r.getId(), now.plusHours(2), now.plusHours(3));
+        r.addBooking(booking);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+        when(roomRepository.findAll()).thenReturn(List.of(r));
+
+        boolean result = bookingSystem.cancelBooking(bookingId);
+
+        assertThat(result).isTrue();
+        assertThat(r.hasBooking(bookingId)).isFalse();
+
+        verify(roomRepository).save(r);
+        verify(notificationService).sendCancellationConfirmation(booking);
+    }
+    @Test
+    void cancelBookingShouldSucceedEvenIdNotificationFails() throws Exception {
+        String bookingId = "B1";
+        Room r = new Room("A", "Room A");
+        Booking booking = new Booking(bookingId, r.getId(), now.plusHours(2), now.plusHours(3));
+        r.addBooking(booking);
+
+        when(timeProvider.getCurrentTime()).thenReturn(now);
+        when(roomRepository.findAll()).thenReturn(List.of(r));
+        doThrow(new NotificationException("Boom"))
+                .when(notificationService)
+                .sendCancellationConfirmation(any(Booking.class));
+
+        boolean result = bookingSystem.cancelBooking(bookingId);
+
+        assertThat(result).isTrue();
+        verify(roomRepository).save(r);
+        verify(notificationService).sendCancellationConfirmation(any(Booking.class));
     }
 
 
