@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,14 +48,12 @@ class BookingSystemTest {
 
         room = new Room(roomId, "Conference Room");
 
-        when(timeProvider.getCurrentTime()).thenReturn(now);
-
-
     }
 
     @Test
     @DisplayName("bookRoom: returns true when rook is available")
     void bookRoomShouldReturnTrueWhenRoomIsAvailable() {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         boolean result = bookingSystem.bookRoom(roomId, start, end);
@@ -65,6 +64,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: saves room when cooking is successful")
     void bookRoomShouldSaveRoomWhenRoomIsAvailable() {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         bookingSystem.bookRoom(roomId, start, end);
@@ -75,6 +75,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: sends booking confirmation with correct booking details")
     void bookRoomShouldSendConfirmationWithCorrectBookingDetails() throws Exception {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         bookingSystem.bookRoom(roomId, start, end);
@@ -91,6 +92,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: returns false and does not save when the room is not available")
     void bookRoomShouldReturnFalseWhenRoomIsnNotAvailable() throws Exception {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         room.addBooking(new Booking("B1", roomId, start.minusMinutes(30), start.plusMinutes(30)));
@@ -105,6 +107,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: succeeds even if notification sending fails")
     void bookRoomShouldSucceedEvenIfNotificationFails() throws Exception {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
 
         doThrow(new NotificationException("Boom"))
@@ -121,6 +124,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: throws exception when room does not exist")
     void bookRoomShouldThrowWhenRoomDoesNotExist() throws Exception {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, start, end))
@@ -134,6 +138,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: throws exception when start time is in the past")
     void bookRoomShouldThrowWhenStartTimeIsInPast() throws Exception {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         LocalDateTime pastStart = now.minusMinutes(1);
         LocalDateTime pastEnd = now.minusMinutes(10);
 
@@ -148,6 +153,7 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: throws exception when end is before start")
     void bookRoomShouldThrowWhenEndBeforeStart() throws Exception {
+        when(timeProvider.getCurrentTime()).thenReturn(now);
         LocalDateTime badEnd = start.minusMinutes(1);
 
         assertThatThrownBy(() -> bookingSystem.bookRoom(roomId, start, badEnd))
@@ -157,5 +163,22 @@ class BookingSystemTest {
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
     }
+    @Test
+    @DisplayName("getAvailableRooms: Returns only rooms that are available in the given time range")
+    void getAvailableRoomsShouldReturnOnlyAvailableRooms(){
+        Room available = new Room("A", "Available");
+        Room notAvailable = new Room("B", "Not Available");
+
+
+        notAvailable.addBooking(new Booking("B1", "B", start.minusMinutes(10), end.plusMinutes(10)));
+
+        when(roomRepository.findAll()).thenReturn(List.of(available, notAvailable));
+
+        List<Room> result = bookingSystem.getAvailableRooms(start, end);
+
+        assertThat(result)
+                .containsExactly(available);
+    }
+
 
 }
