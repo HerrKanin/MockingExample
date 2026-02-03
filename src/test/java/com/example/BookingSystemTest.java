@@ -44,13 +44,15 @@ class BookingSystemTest {
         room = new Room(roomId, "Conference Room");
 
         when(timeProvider.getCurrentTime()).thenReturn(now);
-        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
 
     }
 
     @Test
     @DisplayName("bookRoom: returns true when rook is available")
     void bookRoomShouldReturnTrueWhenRoomIsAvailable(){
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
         boolean result = bookingSystem.bookRoom(roomId, start, end);
 
         assertThat(result).isTrue();
@@ -58,6 +60,8 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: saves room when cooking is successful")
     void bookRoomShouldSaveRoomWhenRoomIsAvailable(){
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
         bookingSystem.bookRoom(roomId, start, end);
 
         verify(roomRepository).save(room);
@@ -65,6 +69,8 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: sends booking confirmation with correct booking details")
     void bookRoomShouldSendConfirmationWithCorrectBookingDetails() throws Exception {
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
         bookingSystem.bookRoom(roomId, start, end);
 
         verify(notificationService).sendBookingConfirmation(bookingCaptor.capture());
@@ -78,6 +84,8 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: returns false and does not save when the room is not available")
     void bookRoomShouldReturnFalseWhenRoomIsnNotAvailable() throws Exception {
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
         room.addBooking(new Booking("B1", roomId, start.minusMinutes(30), start.plusMinutes(30)));
 
         boolean result = bookingSystem.bookRoom(roomId, start, end);
@@ -89,6 +97,8 @@ class BookingSystemTest {
     @Test
     @DisplayName("bookRoom: succeeds even if notification sending fails")
     void bookRoomShouldSucceedEvenIfNotificationFails() throws Exception {
+        when(roomRepository.findById(roomId)).thenReturn(Optional.of(room));
+
         doThrow(new NotificationException("Boom"))
                 .when(notificationService)
                 .sendBookingConfirmation(any(Booking.class));
@@ -100,8 +110,8 @@ class BookingSystemTest {
         verify(notificationService).sendBookingConfirmation(any(Booking.class));
     }
     @Test
-    @DisplayName("bookRoom: should throw exception when room does not exist")
-    void bookRoomShouldThrowExceptionWhenRoomDoesNotExist() throws Exception {
+    @DisplayName("bookRoom: throws exception when room does not exist")
+    void bookRoomShouldThrowWhenRoomDoesNotExist() throws Exception {
         when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, start, end))
@@ -111,4 +121,19 @@ class BookingSystemTest {
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
     }
+    @Test
+    @DisplayName("bookRoom: throws exception when start time is in the past")
+    void bookRoomShouldThrowWhenStartTimeIsInPast() throws Exception {
+        LocalDateTime pastStart = now.minusMinutes(1);
+        LocalDateTime pastEnd = now.minusMinutes(10);
+
+        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, pastStart, pastEnd))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("dåtid");
+
+        verify(roomRepository, never()).save(any());
+        verify(notificationService, never()).sendBookingConfirmation(any());
+
+    }
+
 }
