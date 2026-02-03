@@ -162,8 +162,9 @@ class BookingSystemTest {
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
     }
+
     @Test
-    @DisplayName("getAvailableRooms: Returns only rooms that are available in the given time range")
+    @DisplayName("getAvailableRooms: returns only rooms that are available in the given time range")
     void getAvailableRoomsShouldReturnOnlyAvailableRooms(){
         Room available = new Room("A", "Available");
         Room notAvailable = new Room("B", "Not Available");
@@ -178,7 +179,9 @@ class BookingSystemTest {
         assertThat(result)
                 .containsExactly(available);
     }
+
     @Test
+    @DisplayName("getAvailableRooms: throws exception when end time is before start time")
     void getAvailableRoomsShouldThrownWhenBeforeStart(){
         LocalDateTime badEnd = start.minusMinutes(1);
 
@@ -186,26 +189,32 @@ class BookingSystemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Sluttid måste vara efter starttid");
     }
+
     @Test
+    @DisplayName("cancelBooking: throws exception when booking id is null")
     void cancelBookingShouldThrownWhenBookingIdIsNull(){
         assertThatThrownBy(()-> bookingSystem.cancelBooking(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Boknings-id kan inte vara null");
     }
+
     @Test
+    @DisplayName("cancelBooking: returns false when booking cannot be found")
     void cancelBookingShouldReturnFalseWhenBookingNotFound() throws Exception{
         when(roomRepository.findAll()).thenReturn(List.of(
                 new Room("A", "Room A"),
                 new Room("A", "Room B")
         ));
 
-        boolean reslut = bookingSystem.cancelBooking("missing");
+        boolean result = bookingSystem.cancelBooking("missing");
 
-        assertThat(reslut).isFalse();
+        assertThat(result).isFalse();
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendCancellationConfirmation(any());
     }
+
     @Test
+    @DisplayName("cancelBooking: throws exception when booking has already started")
     void cancelBookingShouldThrowWhenBookingAlreadyStarted() throws Exception{
         String bookingId = "B1";
         Room r = new Room("A", "Room A");
@@ -222,7 +231,9 @@ class BookingSystemTest {
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendCancellationConfirmation(any());
     }
+
     @Test
+    @DisplayName("cancelBooking: remove booking, saves room and send cancellation confirmation when successful")
     void cancelBookingShouldRemoveSaveAndNotifyWhenSuccess() throws Exception{
 
         String bookingId = "B1";
@@ -241,7 +252,9 @@ class BookingSystemTest {
         verify(roomRepository).save(r);
         verify(notificationService).sendCancellationConfirmation(booking);
     }
+
     @Test
+    @DisplayName("cancelBooking: succeeds even if cancellation notification fails")
     void cancelBookingShouldSucceedEvenIdNotificationFails() throws Exception {
         String bookingId = "B1";
         Room r = new Room("A", "Room A");
@@ -260,6 +273,4 @@ class BookingSystemTest {
         verify(roomRepository).save(r);
         verify(notificationService).sendCancellationConfirmation(any(Booking.class));
     }
-
-
 }
