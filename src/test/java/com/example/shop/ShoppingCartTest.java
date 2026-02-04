@@ -27,4 +27,17 @@ class ShoppingCartTest {
 
         assertThat(cart.getTotal()).isEqualByComparingTo("49.90");
     }
+
+    @Test
+    @DisplayName("Adding the same product twice accumulates quantity")
+    void addSameProductTwiceAccumulatesQuantity(){
+        ShoppingCart cart = new ShoppingCart();
+        Product product = new Product("p1", "Coffe", new BigDecimal("49.90"));
+
+        cart.add(product);
+        cart.add(product);
+
+        assertThat(cart.getQuantity("p1")).isEqualTo(2);
+        assertThat(cart.getTotal()).isEqualByComparingTo("99.80");
+    }
 }

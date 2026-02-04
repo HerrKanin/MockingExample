@@ -1,16 +1,31 @@
 package com.example.shop;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ShoppingCart {
 
-    private BigDecimal total = BigDecimal.ZERO;
+    private final Map<String, Product> productsById = new HashMap<>();
+    private final Map<String, Integer> quantityById = new HashMap<>();
 
     public void add(Product product){
-        total = total.add(product.getPrice());
-
+        productsById.putIfAbsent(product.getId(), product);
+        quantityById.merge(product.getId(), 1, Integer::sum);
     }
+
+    public int getQuantity(String productId){
+        return quantityById.getOrDefault(productId, 0);
+    }
+
     public BigDecimal getTotal(){
-        return total;
+        BigDecimal subtotal = BigDecimal.ZERO;
+        for (Map.Entry<String, Integer> entry : quantityById.entrySet()) {
+            String id = entry.getKey();
+            int qty = entry.getValue();
+            Product p = productsById.get(id);
+            subtotal = subtotal.add(p.getPrice().multiply(BigDecimal.valueOf(qty)));
+        }
+        return subtotal;
     }
 }

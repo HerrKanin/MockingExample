@@ -17,4 +17,8 @@ public class Product {
     public BigDecimal getPrice(){
         return price;
     }
+
+    public String getId(){
+        return id;
+    }
 }
