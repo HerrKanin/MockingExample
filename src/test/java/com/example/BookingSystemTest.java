@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -12,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -161,6 +164,27 @@ class BookingSystemTest {
 
         verify(roomRepository, never()).save(any());
         verify(notificationService, never()).sendBookingConfirmation(any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("nullArgsForBookRoom")
+    @DisplayName("bookRoom: throws exception for null arguments")
+    void bookRoomShouldThrowWhenAnyArgumentIsNull(String roomId, LocalDateTime start, LocalDateTime end){
+
+        assertThatThrownBy(()-> bookingSystem.bookRoom(roomId, start, end))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("giltiga");
+    }
+
+    static Stream<Object[]> nullArgsForBookRoom(){
+        LocalDateTime someStart = LocalDateTime.of(2026,2,2,11,0);
+        LocalDateTime someEnd = LocalDateTime.of(2026,2,2,12,0);
+
+        return Stream.of(
+                new Object[]{null, someStart, someEnd},
+                new Object[]{"R1", null, someEnd},
+                new Object[]{"R1", someStart, null}
+        );
     }
 
     @Test
