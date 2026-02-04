@@ -28,4 +28,10 @@ public class ShoppingCart {
         }
         return subtotal;
     }
+
+    public boolean remove(String productId){
+        boolean existed = quantityById.remove(productId) != null;
+        productsById.remove(productId);
+        return existed;
+    }
 }

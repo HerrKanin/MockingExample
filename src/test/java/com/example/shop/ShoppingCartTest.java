@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.array;
 
 class ShoppingCartTest {
 
@@ -39,5 +40,20 @@ class ShoppingCartTest {
 
         assertThat(cart.getQuantity("p1")).isEqualTo(2);
         assertThat(cart.getTotal()).isEqualByComparingTo("99.80");
+    }
+
+    @Test
+    @DisplayName("Removing a product removes it completely from the cart")
+    void removeProductRemovesCompletely(){
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("49.90")));
+        cart.add(new Product("p2", "Tee", new BigDecimal("30.00")));
+
+        boolean removed = cart.remove("p1");
+
+        assertThat(removed).isTrue();
+        assertThat(cart.getQuantity("p1")).isZero();
+        assertThat(cart.getTotal()).isEqualByComparingTo("30.00");
+
     }
 }
