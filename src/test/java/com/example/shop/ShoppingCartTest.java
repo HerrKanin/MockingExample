@@ -56,4 +56,17 @@ class ShoppingCartTest {
         assertThat(cart.getTotal()).isEqualByComparingTo("30.00");
 
     }
+
+    @Test
+    @DisplayName("Removing an unknow product returns false and does not chang the cart")
+    void removeUnknownProductReturnsFalse(){
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("49.90")));
+
+        boolean removed = cart.remove("does not exist");
+
+        assertThat(removed).isFalse();
+        assertThat(cart.getQuantity("p1")).isEqualTo(1);
+        assertThat(cart.getTotal()).isEqualByComparingTo("49.90");
+    }
 }
