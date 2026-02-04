@@ -214,6 +214,26 @@ class BookingSystemTest {
                 .hasMessageContaining("Sluttid måste vara efter starttid");
     }
 
+    @ParameterizedTest
+    @MethodSource("nullArgsForGetAvailableRooms")
+    @DisplayName("getAvailableRooms: throws exception for null arguments")
+    void getAvailableRoomsShouldThrowWhenAnyArgumentsIsNull(LocalDateTime start, LocalDateTime end){
+
+        assertThatThrownBy(()-> bookingSystem.getAvailableRooms(start, end))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("start- och sluttid");
+    }
+
+    static Stream<Object[]> nullArgsForGetAvailableRooms(){
+        LocalDateTime someStart = LocalDateTime.of(2026,2,2,11,0);
+        LocalDateTime someEnd = LocalDateTime.of(2026,2,2,12,0);
+
+        return Stream.of(
+                new Object[]{null, someEnd},
+                new Object[]{someStart, null}
+        );
+    }
+
     @Test
     @DisplayName("cancelBooking: throws exception when booking id is null")
     void cancelBookingShouldThrownWhenBookingIdIsNull(){
