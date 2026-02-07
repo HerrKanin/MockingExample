@@ -36,6 +36,7 @@ public class ShoppingCart {
     }
 
     public boolean updateQuantity(String productId, int quantity){
+        if (quantity < 0) throw new IllegalArgumentException("quantity");
         if (!quantityById.containsKey(productId))  return false;
 
         if (quantity == 0) {

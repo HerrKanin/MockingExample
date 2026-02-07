@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.array;
 
 class ShoppingCartTest {
@@ -97,5 +98,16 @@ class ShoppingCartTest {
 
         boolean updateAgain = cart.updateQuantity("p1", 1);
         assertThat(updateAgain).isFalse();
+    }
+
+    @Test
+    @DisplayName("Updating quantity to a negative value throws IllegalArgumentException")
+    void updatingQuantityToNegativeThrows(){
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("10.00")));
+
+        assertThatThrownBy(()-> cart.updateQuantity("p1", -1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("quantity");
     }
 }
