@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.InstanceOfAssertFactories.array;
 
 class ShoppingCartTest {
@@ -110,4 +109,16 @@ class ShoppingCartTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("quantity");
     }
+
+    @Test
+    @DisplayName("Applying a percentage discount reduces total price")
+    void percentageDiscountReducesTotalPrice() {
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("100.00")));
+
+        cart.applyDiscount(new PercentageDiscount(new BigDecimal("10")));
+
+        assertThat(cart.getTotal()).isEqualByComparingTo("90.00");
+    }
+
 }

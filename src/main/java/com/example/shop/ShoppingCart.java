@@ -8,6 +8,11 @@ public class ShoppingCart {
 
     private final Map<String, Product> productsById = new HashMap<>();
     private final Map<String, Integer> quantityById = new HashMap<>();
+    private Discount discount;
+
+    public void applyDiscount(Discount discount){
+        this.discount = discount;
+    }
 
     public void add(Product product){
         productsById.putIfAbsent(product.getId(), product);
@@ -20,13 +25,16 @@ public class ShoppingCart {
 
     public BigDecimal getTotal(){
         BigDecimal subtotal = BigDecimal.ZERO;
+
         for (Map.Entry<String, Integer> entry : quantityById.entrySet()) {
             String id = entry.getKey();
             int qty = entry.getValue();
             Product p = productsById.get(id);
             subtotal = subtotal.add(p.getPrice().multiply(BigDecimal.valueOf(qty)));
         }
-        return subtotal;
+
+        BigDecimal total = (discount == null) ? subtotal : discount.apply(subtotal);
+        return total;
     }
 
     public boolean remove(String productId){
