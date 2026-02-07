@@ -34,4 +34,10 @@ public class ShoppingCart {
         productsById.remove(productId);
         return existed;
     }
+
+    public boolean updateQuantity(String productId, int quantity){
+        if (!quantityById.containsKey(productId))  return false;
+        quantityById.put(productId, quantity);
+        return true;
+    }
 }

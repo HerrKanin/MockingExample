@@ -69,4 +69,17 @@ class ShoppingCartTest {
         assertThat(cart.getQuantity("p1")).isEqualTo(1);
         assertThat(cart.getTotal()).isEqualByComparingTo("49.90");
     }
+
+    @Test
+    @DisplayName("Updating quantity changes total price")
+    void updateQuantityChangesTotalPrice(){
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("10.00")));
+
+        boolean updated = cart.updateQuantity("p1", 5);
+
+        assertThat(updated).isTrue();
+        assertThat(cart.getQuantity("p1")).isEqualTo(5);
+        assertThat(cart.getTotal()).isEqualByComparingTo("50.00");
+    }
 }
