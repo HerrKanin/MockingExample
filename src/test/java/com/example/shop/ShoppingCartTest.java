@@ -132,4 +132,14 @@ class ShoppingCartTest {
         assertThat(cart.getTotal()).isEqualByComparingTo("0.00");
     }
 
+    @Test
+    @DisplayName("Applying a null discount throws IllegalArgumentException")
+    void applyDiscountNullThrows(){
+        ShoppingCart cart = new ShoppingCart();
+
+        assertThatThrownBy(()-> cart.applyDiscount(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("discount");
+    }
+
 }

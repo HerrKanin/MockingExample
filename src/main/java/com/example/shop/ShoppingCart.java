@@ -11,6 +11,9 @@ public class ShoppingCart {
     private Discount discount;
 
     public void applyDiscount(Discount discount){
+        if (discount == null) {
+            throw new IllegalArgumentException("discount");
+        }
         this.discount = discount;
     }
 
