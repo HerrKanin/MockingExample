@@ -1,4 +1,4 @@
-package com.example.shop;
+package shop;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
