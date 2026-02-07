@@ -82,4 +82,20 @@ class ShoppingCartTest {
         assertThat(cart.getQuantity("p1")).isEqualTo(5);
         assertThat(cart.getTotal()).isEqualByComparingTo("50.00");
     }
+
+    @Test
+    @DisplayName("Updating quantity to zero removes the product from the cart")
+    void updatingQuantityToZeroRemovesTheProductFromTheCart(){
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("10.00")));
+
+        boolean updated = cart.updateQuantity("p1", 0);
+
+        assertThat(updated).isTrue();
+        assertThat(cart.getQuantity("p1")).isZero();
+        assertThat(cart.getTotal()).isEqualByComparingTo("0.00");
+
+        boolean updateAgain = cart.updateQuantity("p1", 1);
+        assertThat(updateAgain).isFalse();
+    }
 }
