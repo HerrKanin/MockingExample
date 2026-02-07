@@ -2,7 +2,6 @@ package shop;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import shop.FixedAmountDiscount;
 
 import java.math.BigDecimal;
 
