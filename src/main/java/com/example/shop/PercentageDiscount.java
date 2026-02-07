@@ -7,6 +7,12 @@ public class PercentageDiscount implements Discount {
     private final BigDecimal percent;
 
     public PercentageDiscount(BigDecimal percent){
+        if (percent == null){
+            throw new IllegalArgumentException("percent");
+        }
+        if (percent.compareTo(BigDecimal.ZERO) < 0){
+            throw new IllegalArgumentException("percent");
+        }
         this.percent = percent;
     }
 
