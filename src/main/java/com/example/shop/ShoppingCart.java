@@ -34,6 +34,10 @@ public class ShoppingCart {
         }
 
         BigDecimal total = (discount == null) ? subtotal : discount.apply(subtotal);
+
+        if (total.compareTo(BigDecimal.ZERO) < 0 ){
+            total = BigDecimal.ZERO;
+        }
         return total;
     }
 

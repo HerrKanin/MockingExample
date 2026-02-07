@@ -121,4 +121,15 @@ class ShoppingCartTest {
         assertThat(cart.getTotal()).isEqualByComparingTo("90.00");
     }
 
+    @Test
+    @DisplayName("A discount must never make the total price negtive")
+    void discountNeverMakesTotalPriceNegative(){
+        ShoppingCart cart = new ShoppingCart();
+        cart.add(new Product("p1", "Coffee", new BigDecimal("20.00")));
+
+        cart.applyDiscount(new FixedAmountDiscount(new BigDecimal("50.00")));
+
+        assertThat(cart.getTotal()).isEqualByComparingTo("0.00");
+    }
+
 }
